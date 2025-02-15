@@ -2,10 +2,13 @@ package la.com.gateway.util;
 
 import jakarta.annotation.PostConstruct;
 import la.com.gateway.common.exception.LaException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
-
+@Slf4j
+@Service
 public class BlowFishUtil {
 
     @Value("${ewallet.card.cipher.secret.key}")
