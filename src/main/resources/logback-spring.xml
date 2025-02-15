@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <property resource="application.yml"/>
+
+    <springProfile name = "prod">
+        <appender name="logstash" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <!--                <timestamp>-->
+                    <!--                    <timeZone>UTC+7</timeZone>-->
+                    <!--                </timestamp>-->
+                    <pattern>
+                        <pattern>
+                            {
+                            "time": "%date{ISO8601}",
+                            "span_id": "%X{spanId:-}",
+                            "trace_id": "%X{traceId:-}",
+                            "http_status": "%X{httpStatus}",
+                            "client_ip": "%X{clientIP}",
+                            "app_code": "%X{appCode}",
+                            "app_version": "%X{appVersion}",
+                            "app_type": "%X{appType}",
+                            "request_at": "%X{reqAt}",
+                            "response_at": "%X{resAt}",
+                            "request_header": "%X{reqHeader}",
+                            "response_header": "%X{resHeader}",
+                            "request_time": "%X{reqTime}",
+                            "request_size": "%X{reqSize}",
+                            "response_size": "%X{resSize}",
+                            "query_params": "%X{queryParams}",
+                            "level": "%level",
+                            "uri": "%X{uri:-}",
+                            "user_id":"%X{userId}",
+                            "campus":"%X{campus}",
+                            "user_type":"%X{userType}",
+                            "error_code":"%X{errorCode}",
+                            "method": "%X{method}",
+                            "class": "%logger{40}",
+                            "exception": "%exception"
+                            }
+                        </pattern>
+                    </pattern>
+                    <provider class="la.com.gateway.config.log.MaskingMessageProvider">
+                        <fieldName>msg_log</fieldName>
+                    </provider>
+                    <stackTrace/>
+                </providers>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="logstash"/>
+        </root>
+    </springProfile>
+    <springProfile name = "local" >
+        <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+        <root level ="INFO">
+            <appender-ref ref ="console"/>
+        </root>
+    </springProfile>
+
+</configuration>

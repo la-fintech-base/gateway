@@ -1,0 +1,25 @@
+server:
+  port: 8082
+spring:
+  profiles:
+    active: local
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/users/**
+        - id: wallet-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/wallets/**
+        - id: transaction-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/transactions/**
+      default-filters:
+#        - name: RequestRateLimiter
+#          args:
+#            redis-rate-limiter.replenishRate: 10
+#            redis-rate-limiter.burstCapacity: 20
