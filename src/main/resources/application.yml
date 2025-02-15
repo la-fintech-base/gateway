@@ -23,3 +23,7 @@ spring:
 #          args:
 #            redis-rate-limiter.replenishRate: 10
 #            redis-rate-limiter.burstCapacity: 20
+
+      httpclient:
+        connect-timeout: 2000  # 2 giây
+        response-timeout: 5s    # 5 giây
