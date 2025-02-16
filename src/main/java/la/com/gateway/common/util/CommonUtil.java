@@ -7,15 +7,13 @@ import la.com.gateway.common.exception.LaException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.apache.commons.lang3.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 import java.util.UUID;
 
 @Slf4j
@@ -29,13 +27,9 @@ public class CommonUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static HttpServletRequest getCurrentHttpRequest() {
-        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        if (requestAttributes instanceof ServletRequestAttributes requestAttr) {
-            return requestAttr.getRequest();
-        }
-        log.info("Not called in the context of an HTTP request");
-        return null;
+    public static ServerHttpRequest getCurrentHttpRequest() {
+        //TODO: làm sau nhé
+        return null; // WebFlux không có RequestContextHolder, cần truyền request vào phương thức khi gọi
     }
 
     public static String toJson(Object obj) {
@@ -66,25 +60,28 @@ public class CommonUtil {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    public static String getClientIp(HttpServletRequest request) {
-        String ipAddress = request.getHeader("X-Forwarded-For");
+    public static String getClientIp(ServerRequest request) {
+        String ipAddress = request.headers().firstHeader("X-Forwarded-For");
 
         if (StringUtils.isEmpty(ipAddress) || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = request.getHeader("Proxy-Client-IP");
+            ipAddress = request.headers().firstHeader("Proxy-Client-IP");
         }
 
         if (StringUtils.isEmpty(ipAddress) || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = request.getHeader("WL-Proxy-Client-IP");
+            ipAddress = request.headers().firstHeader("WL-Proxy-Client-IP");
         }
 
         if (StringUtils.isEmpty(ipAddress) || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = request.getRemoteAddr();
-            if (LOCALHOST_IPV4.equals(ipAddress) || LOCALHOST_IPV6.equals(ipAddress)) {
-                try {
-                    InetAddress inetAddress = InetAddress.getLocalHost();
-                    ipAddress = inetAddress.getHostAddress();
-                } catch (UnknownHostException e) {
-                    log.error(e.getMessage());
+            InetSocketAddress remoteAddress = request.exchange().getRequest().getRemoteAddress();
+            if (remoteAddress != null) {
+                ipAddress = remoteAddress.getAddress().getHostAddress();
+                if (LOCALHOST_IPV4.equals(ipAddress) || LOCALHOST_IPV6.equals(ipAddress)) {
+                    try {
+                        InetAddress inetAddress = InetAddress.getLocalHost();
+                        ipAddress = inetAddress.getHostAddress();
+                    } catch (UnknownHostException e) {
+                        log.error(e.getMessage());
+                    }
                 }
             }
         }
@@ -96,16 +93,9 @@ public class CommonUtil {
         return ipAddress;
     }
 
-    public static HttpHeaders extractHeaders(HttpServletRequest request) {
+    public static HttpHeaders extractHeaders(ServerRequest request) {
         HttpHeaders headers = new HttpHeaders();
-        if (request != null) {
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                String value = request.getHeader(headerName);
-                headers.add(headerName, value);
-            }
-        }
+        request.headers().asHttpHeaders().forEach(headers::addAll);
 
         headers.addIfAbsent("correlationId", MDC.get("correlationId"));
 

@@ -4,6 +4,7 @@ import la.com.gateway.common.constant.ErrorEnum;
 import la.com.gateway.common.exception.LaException;
 import la.com.gateway.common.model.AccessTokenPayload;
 import la.com.gateway.common.util.CommonUtil;
+import la.com.gateway.service.AccessTokenService;
 import la.com.gateway.util.AESUtil;
 import la.com.gateway.util.BlowFishUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @Primary
-public class AccessTokenServiceImpl {
+public class AccessTokenServiceImpl implements AccessTokenService {
     private final AESUtil aesUtil;
     private final BlowFishUtil blowFishUtil;
 
